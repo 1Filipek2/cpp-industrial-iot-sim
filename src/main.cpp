@@ -7,6 +7,7 @@
 
 #include "TemperatureSensor.hpp"
 #include "PressureSensor.hpp"
+#include "Logger.hpp"
 
 int main () {
     std::vector<std::unique_ptr<industrial::ISensor>> sensors;
@@ -14,6 +15,7 @@ int main () {
     sensors.push_back(std::make_unique<industrial::TemperatureSensor>("Main Boiler", 20.0, 100.0));
     sensors.push_back(std::make_unique<industrial::PressureSensor>("Hydraulic Pump", 0.0, 10.0));
 
+    Logger logger("alarms.log");
 
     while (true)
     {
@@ -29,6 +31,8 @@ int main () {
 
                 if(unsafe) {
                     std::cout << "\033[1;31m[ALARM] ";
+
+                    logger.log("ALARM: " + sensor->getName() + " - Value: " + std::to_string(val));
                 }
 
                 std::cout << "Sensor: " << std::left << std::setw(15) << sensor->getName() 
