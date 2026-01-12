@@ -1,0 +1,12 @@
+# Build directory
+build/
+bin/
+
+# Compiled files
+*.o
+*.out
+*.exe
+
+# System & IDE files
+.vscode/
+.DS_Store
