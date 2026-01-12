@@ -13,7 +13,7 @@ class TemperatureSensor : public ISensor{
         std::mt19937 gen;
         std::uniform_real_distribution<double> dist;
     public:
-        TemperatureSensor(std::string name, double min, double max){}
+        TemperatureSensor(std::string name, double min, double max);
 
         double getValue() override;
         std::string getName() const override;
