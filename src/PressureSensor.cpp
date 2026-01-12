@@ -16,4 +16,8 @@ std::string PressureSensor::getName() const {
     return name;
 }
 
+std::string PressureSensor::getUnit() const {
+    return "bar";
+}
+
 }

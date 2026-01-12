@@ -16,4 +16,8 @@ std::string TemperatureSensor::getName() const {
     return name;
 }
 
+std::string TemperatureSensor::getUnit() const {
+    return "C";
+}
+
 } 

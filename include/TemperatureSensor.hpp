@@ -17,7 +17,7 @@ class TemperatureSensor : public ISensor{
 
         double getValue() override;
         std::string getName() const override;
-
+        std::string getUnit() const override;
     };
 }
 
