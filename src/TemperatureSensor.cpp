@@ -9,7 +9,8 @@ TemperatureSensor::TemperatureSensor(std::string n, double min, double max)
 {}
 
 double TemperatureSensor::getValue() {
-    return dist(gen);
+    lastValue = dist(gen);
+    return lastValue;
 }
 
 std::string TemperatureSensor::getName() const {
@@ -18,6 +19,10 @@ std::string TemperatureSensor::getName() const {
 
 std::string TemperatureSensor::getUnit() const {
     return "C";
+}
+
+bool TemperatureSensor::isSafe () const {
+    return lastValue < 80.0;
 }
 
 } 

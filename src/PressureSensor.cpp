@@ -9,7 +9,8 @@ PressureSensor::PressureSensor(std::string n, double min, double max)
 {}
 
 double PressureSensor::getValue() {
-    return dist(gen);
+    lastValue = dist(gen);
+    return lastValue;
 }
 
 std::string PressureSensor::getName() const {
@@ -18,6 +19,10 @@ std::string PressureSensor::getName() const {
 
 std::string PressureSensor::getUnit() const {
     return "bar";
+}
+
+bool PressureSensor::isSafe () const {
+    return lastValue < 8.0;
 }
 
 }

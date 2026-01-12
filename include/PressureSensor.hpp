@@ -12,15 +12,15 @@ class PressureSensor : public ISensor{
         std::string name;
         std::mt19937 gen;
         std::uniform_real_distribution<double> dist;
+        double lastValue = 0.0;
     public:
         PressureSensor(std::string name, double min,double max);
 
         double getValue() override;
         std::string getName() const override;
         std::string getUnit() const override;
+        bool isSafe() const override;
     };
-
-
 }
 
 #endif

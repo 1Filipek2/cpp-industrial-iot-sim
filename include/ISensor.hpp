@@ -11,6 +11,7 @@ class ISensor{
         virtual double getValue() = 0;
         virtual std::string getName() const = 0;
         virtual std::string getUnit() const = 0;
+        virtual bool isSafe() const = 0;
     };
 }
 
