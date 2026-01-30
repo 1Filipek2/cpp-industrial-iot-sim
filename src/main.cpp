@@ -12,8 +12,8 @@
 int main () {
     std::vector<std::unique_ptr<industrial::ISensor>> sensors;
 
-    sensors.push_back(std::make_unique<industrial::TemperatureSensor>("Main Boiler", 20.0, 100.0));
-    sensors.push_back(std::make_unique<industrial::PressureSensor>("Hydraulic Pump", 0.0, 10.0));
+    sensors.push_back(std::make_unique<industrial::TemperatureSensor>("Main Boiler", 20.0, 100.0, 80.0));
+    sensors.push_back(std::make_unique<industrial::PressureSensor>("Hydraulic Pump", 0.0, 10.0, 8.5));
 
     Logger logger("alarms.log");
 

@@ -11,4 +11,5 @@ add_executable(sensor_sim
     src/TemperatureSensor.cpp 
     src/PressureSensor.cpp 
     src/Logger.cpp
+    src/BaseSensor.cpp
 )
