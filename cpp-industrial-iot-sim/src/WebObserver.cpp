@@ -5,6 +5,7 @@
 #include <ctime>               
 #include <thread>
 #include <chrono>
+#include <cstdlib>
 
 namespace industrial {
 
@@ -12,6 +13,9 @@ void WebObserver::onAlarm(const std::string& sensorName, double value) {
     int maxRetries = 3;
     int attempt = 0;
     bool success = false;
+
+    const char* env_key = std::getenv("IOT_API_KEY");
+    std::string apiKey = env_key ? env_key : "MISSING_KEY";
 
     nlohmann::json payload = {
         {"sensor", sensorName},
@@ -27,7 +31,7 @@ void WebObserver::onAlarm(const std::string& sensorName, double value) {
                 cpr::Body{payload.dump()},
                 cpr::Header{
                     {"Content-Type", "application/json"},
-                    {"x-api-key", "SftYkeyyY11461217pilC"} 
+                    {"x-api-key", apiKey} 
                 },
                 cpr::Timeout{2000} 
             );
