@@ -87,23 +87,26 @@ function App() {
     <div className="min-h-screen bg-black text-zinc-300 font-mono">
       <header className="border-b border-zinc-800">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h1 className="text-sm tracking-widest text-zinc-100">INDUSTRIAL MONITOR</h1>
-            <a 
-              href="https://github.com/1Filipek2/cpp-industrial-iot-sim" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-[10px] text-zinc-500 hover:text-zinc-100 transition-colors border-l border-zinc-800 pl-6"
-            >
-              <Github size={14} />
-              <span className="hidden sm:inline">VIEW SOURCE & README</span>
-            </a>
-          </div>
+          <h1 className="text-sm tracking-widest text-zinc-100">INDUSTRIAL MONITOR</h1>
           <button onClick={handleClear} className="text-zinc-500 hover:text-red-500">
             <Trash2 size={16} />
           </button>
         </div>
       </header>
+
+      <div className="border-b border-zinc-800 bg-zinc-900/20">
+        <div className="max-w-6xl mx-auto px-6 py-2 flex justify-center">
+          <a 
+            href="https://github.com/1Filipek2/cpp-industrial-iot-sim" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-[10px] text-zinc-500 hover:text-zinc-100 transition-colors"
+          >
+            <Github size={14} />
+            <span>VIEW SOURCE & README</span>
+          </a>
+        </div>
+      </div>
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         <section className="border border-zinc-800 p-4">
