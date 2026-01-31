@@ -12,12 +12,16 @@ const mongoURI = process.env.MONGO_URI;
 const API_KEY = process.env.API_KEY;
 
 if (!mongoURI || !API_KEY) {
+    console.error('Missing environment variables!');
     process.exit(1);
 }
 
 mongoose.connect(mongoURI)
-    .then(() => console.log('Connected'))
-    .catch(() => process.exit(1));
+    .then(() => console.log('Connected to MongoDB Atlas'))
+    .catch((err) => {
+        console.error('Database connection error:', err);
+        process.exit(1);
+    });
 
 const alarmSchema = new mongoose.Schema({
     sensor: String,
@@ -39,8 +43,9 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json());
 
-const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendPath));
+// const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
+// app.use(express.static(frontendPath));
+
 
 const verifyApiKey = (req, res, next) => {
     const userKey = req.header('x-api-key');
@@ -84,8 +89,12 @@ app.delete('/api/alarms', verifyApiKey, async (req, res) => {
     }
 });
 
-app.use((req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+// app.use((req, res) => {
+//    res.sendFile(path.join(frontendPath, 'index.html'));
+// });
+
+app.get('/', (req, res) => {
+    res.send('Industrial IoT API is running...');
 });
 
 app.listen(PORT, '0.0.0.0', () => {
