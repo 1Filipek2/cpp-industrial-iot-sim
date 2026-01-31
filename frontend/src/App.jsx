@@ -7,6 +7,8 @@ import {
   Activity, Thermometer, Droplets, Trash2
 } from 'lucide-react'
 
+axios.defaults.baseURL = 'https://iot-backend-filip.onrender.com';
+
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     return (
@@ -42,7 +44,7 @@ function App() {
   }, [alarms])
 
   const handleClear = async () => {
-    const key = window.prompt('SftYkeyyY11461217pilC')
+    const key = window.prompt('Enter Admin API Key:')
     if (!key) return
     try {
       await axios.delete('/api/alarms', { headers: { 'x-api-key': key } })
