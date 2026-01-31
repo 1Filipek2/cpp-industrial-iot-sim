@@ -44,7 +44,7 @@ function App() {
   }, [alarms])
 
   const handleClear = async () => {
-    const key = window.prompt('Enter Admin API Key:')
+    const key = window.prompt('Enter Admin Key:')
     if (!key) return
     try {
       await axios.delete('/api/alarms', { headers: { 'x-api-key': key } })
