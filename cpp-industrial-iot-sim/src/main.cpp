@@ -52,7 +52,7 @@ int main () {
                 if(unsafe) std::cout << "\033[0m";
                 std::cout << std::endl;
             }
-            std::this_thread::sleep_for(std::chrono::seconds(60));
+            std::this_thread::sleep_for(std::chrono::seconds(600));
         }
         catch(const std::exception& e) {
             std::cerr << "Critical error: " << e.what() << std::endl;
