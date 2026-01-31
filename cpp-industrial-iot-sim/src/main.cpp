@@ -7,15 +7,17 @@
 
 #include "TemperatureSensor.hpp"
 #include "PressureSensor.hpp"
+#include "VibrationSensor.hpp"
 #include "Logger.hpp"
 #include "WebObserver.hpp"
 
 int main () {
     auto boiler = std::make_unique<industrial::TemperatureSensor>("Main Boiler", 20.0, 100.0, 80.0);
     auto pump = std::make_unique<industrial::PressureSensor>("Hydraulic Pump", 0.0, 10.0, 8.5);
+    auto vibSensor = std::make_unique<industrial::VibrationSensor>("Main Motor", 0.1, 5, 2.5);
     
     industrial::Logger logger("alarms.log");
-    industrial::WebObserver webServer("https://iot-backend-filip.onrender.com");
+    industrial::WebObserver webServer("https://iot-backend-filip.onrender.com/api/alarms");
 
     boiler->addObserver(&logger);
     boiler->addObserver(&webServer); 
@@ -23,9 +25,13 @@ int main () {
     pump->addObserver(&logger);
     pump->addObserver(&webServer);
 
+    vibSensor->addObserver(&logger);
+    vibSensor->addObserver(&webServer);
+
     std::vector<std::unique_ptr<industrial::ISensor>> sensors;
     sensors.push_back(std::move(boiler));
     sensors.push_back(std::move(pump));
+    sensors.push_back(std::move(vibSensor));
 
     while (true) {
         std::cout << "\033[2J\033[1;1H";

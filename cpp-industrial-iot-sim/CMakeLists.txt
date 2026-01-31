@@ -25,11 +25,12 @@ include_directories(include)
 
 add_executable(sensor_sim 
     src/main.cpp 
+    src/BaseSensor.cpp
     src/TemperatureSensor.cpp 
     src/PressureSensor.cpp 
+    src/VibrationSensor.cpp
     src/Logger.cpp
-    src/BaseSensor.cpp
-    src/WebObserver.cpp 
+    src/WebObserver.cpp
 )
 
 target_link_libraries(sensor_sim PRIVATE 
