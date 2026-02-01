@@ -35,13 +35,17 @@ function App() {
     }
   }, [])
 
+  const latestAlarms = useMemo(() => {
+    return [...alarms].slice(0, 20)
+  }, [alarms])
+
   const chartData = useMemo(() => {
-    return [...alarms].slice(0, 20).reverse().map(a => ({
+    return [...latestAlarms].reverse().map(a => ({
       time: new Date(a.timestamp).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
       value: a.value,
       fullDate: new Date(a.timestamp).toLocaleString('en-GB')
     }))
-  }, [alarms])
+  }, [latestAlarms])
 
   const handleClear = async () => {
     const key = window.prompt('Enter Admin Key:')
@@ -114,7 +118,7 @@ function App() {
             <span className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold tracking-widest uppercase">
               <Activity size={14} className="text-zinc-600" /> Signal Trend
             </span>
-            <span className="text-[9px] text-zinc-700">LAST_20_SAMPLES</span>
+            <span className="text-[9px] text-zinc-700 uppercase">Sync_Active</span>
           </div>
           <div className="h-60 sm:h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -150,9 +154,9 @@ function App() {
         <section className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h2 className="text-[10px] text-zinc-500 tracking-[0.2em] font-bold uppercase flex items-center gap-2">
-              <ChevronRight size={12} className="text-red-900" /> Event Log
+              <ChevronRight size={12} className="text-red-900" /> Event Log (Last 20)
             </h2>
-            <span className="text-[9px] text-zinc-700 font-mono">RECORDS: {alarms.length}</span>
+            <span className="text-[9px] text-zinc-700 font-mono tracking-tighter uppercase">Status: Live</span>
           </div>
 
           <div className="hidden md:block overflow-hidden border border-zinc-800 rounded-sm">
@@ -166,7 +170,7 @@ function App() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-900">
-                {alarms.map(alarm => (
+                {latestAlarms.map(alarm => (
                   <tr key={alarm._id} className="hover:bg-zinc-900/30 transition-colors group">
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3 text-zinc-400">
@@ -197,7 +201,7 @@ function App() {
           </div>
 
           <div className="md:hidden space-y-3">
-            {alarms.map(alarm => (
+            {latestAlarms.map(alarm => (
               <div key={alarm._id} className="border border-zinc-800 bg-zinc-950 p-4 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
@@ -231,7 +235,7 @@ function App() {
             ))}
           </div>
 
-          {alarms.length === 0 && (
+          {latestAlarms.length === 0 && (
             <div className="py-20 text-center border border-dashed border-zinc-900">
               <p className="text-[10px] text-zinc-800 tracking-[0.4em] uppercase">Null Data Stream</p>
             </div>
@@ -241,7 +245,7 @@ function App() {
 
       <footer className="max-w-5xl mx-auto px-8 py-10 border-t border-zinc-950 text-[9px] text-zinc-800 flex flex-col sm:flex-row justify-between gap-4">
         <p className="tracking-widest uppercase">Industrial_Interface_v1.0</p>
-        <p className="font-mono italic">SECURE_DASHBOARD_2026</p>
+        <p className="font-mono italic uppercase">Last_20_Entries_Buffer</p>
       </footer>
     </div>
   )
