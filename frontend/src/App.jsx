@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
 import {
-  Activity, Thermometer, Droplets, Trash2, Github, Clock, ChevronRight
+  Activity, Thermometer, Droplets, Trash2, Github, Clock, ChevronRight, AlertTriangle
 } from 'lucide-react'
 
 axios.defaults.baseURL = 'https://iot-backend-filip.onrender.com';
@@ -23,6 +23,7 @@ const CustomTooltip = ({ active, payload }) => {
 
 function App() {
   const [alarms, setAlarms] = useState([])
+  const [stats, setStats] = useState({ maxTemp: 0, alertCount: 0, avgPressure: 0 })
   const [loading, setLoading] = useState(true)
 
   const wakeUpServer = useCallback(async () => {
@@ -34,16 +35,24 @@ function App() {
     }
   }, []);
 
-  async function fetchAlarms() {
+  const fetchAlarms = useCallback(async () => {
     try {
       const res = await axios.get('/api/alarms')
       setAlarms(res.data)
       setLoading(false)
     } catch {
-      console.error("Fetch_Error: Retrying..");
-      setTimeout(fetchAlarms, 3000);
+      console.error("Fetch_Error: Backend is likely sleeping.");
     }
-  }
+  }, []);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/stats')
+      setStats(res.data)
+    } catch {
+      console.log("Stats_Error: Waiting for data...");
+    }
+  }, []);
 
   const latestAlarms = useMemo(() => {
     return [...alarms].slice(0, 20)
@@ -63,19 +72,28 @@ function App() {
     try {
       await axios.delete('/api/alarms', { headers: { 'x-api-key': key } })
       fetchAlarms()
+      fetchStats()
     } catch {
       alert('Unauthorized access attempt logged.')
     }
   }
 
   useEffect(() => {
-    wakeUpServer();
-    fetchAlarms();
+    const initSystem = async () => {
+      wakeUpServer();
+      await fetchAlarms();
+      fetchStats();
+    };
 
-    const interval = setInterval(fetchAlarms, 5000)
+    initSystem();
+
+    const interval = setInterval(() => {
+      fetchAlarms();
+      fetchStats();
+    }, 5000)
+
     return () => clearInterval(interval)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [wakeUpServer])
+  }, [wakeUpServer, fetchAlarms, fetchStats])
 
   if (loading) {
     return (
@@ -111,6 +129,45 @@ function App() {
       </div>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-8 py-8 space-y-8">
+        
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="border border-zinc-800 bg-zinc-900/10 p-4 rounded-sm flex items-center justify-between group hover:border-zinc-700 transition-colors">
+            <div>
+              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">Peak Temp (24h)</p>
+              <p className="text-xl font-bold text-zinc-100 font-mono">
+                {stats.maxTemp.toFixed(1)}<span className="text-zinc-600 text-xs ml-1">°C</span>
+              </p>
+            </div>
+            <div className="p-2 bg-red-950/20 rounded-full">
+              <Thermometer size={18} className="text-red-500" />
+            </div>
+          </div>
+
+          <div className="border border-zinc-800 bg-zinc-900/10 p-4 rounded-sm flex items-center justify-between group hover:border-zinc-700 transition-colors">
+            <div>
+              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">Alerts Today</p>
+              <p className="text-xl font-bold text-zinc-100 font-mono">
+                {stats.alertCount}
+              </p>
+            </div>
+            <div className="p-2 bg-amber-950/20 rounded-full">
+              <AlertTriangle size={18} className="text-amber-500" />
+            </div>
+          </div>
+
+          <div className="border border-zinc-800 bg-zinc-900/10 p-4 rounded-sm flex items-center justify-between group hover:border-zinc-700 transition-colors">
+            <div>
+              <p className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1">Avg Pressure</p>
+              <p className="text-xl font-bold text-zinc-100 font-mono">
+                {stats.avgPressure.toFixed(2)}<span className="text-zinc-600 text-xs ml-1">BAR</span>
+              </p>
+            </div>
+            <div className="p-2 bg-blue-950/20 rounded-full">
+              <Droplets size={18} className="text-blue-400" />
+            </div>
+          </div>
+        </section>
+
         <section className="border border-zinc-800 bg-zinc-900/5 p-5 rounded-sm">
           <div className="flex items-center justify-between mb-6">
             <span className="flex items-center gap-2 text-[10px] text-zinc-500 font-bold tracking-widest uppercase">
@@ -122,28 +179,10 @@ function App() {
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#222" vertical={false} />
-                <XAxis 
-                  dataKey="time" 
-                  stroke="#444" 
-                  fontSize={9} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  dy={10}
-                />
-                <YAxis 
-                  stroke="#444" 
-                  fontSize={9} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
+                <XAxis dataKey="time" stroke="#444" fontSize={9} tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke="#444" fontSize={9} tickLine={false} axisLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#666"
-                  fill="#111"
-                  strokeWidth={1.5}
-                />
+                <Area type="monotone" dataKey="value" stroke="#666" fill="#111" strokeWidth={1.5} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -161,34 +200,28 @@ function App() {
             <table className="w-full text-[11px]">
               <thead className="bg-zinc-900/50 text-zinc-600 border-b border-zinc-800">
                 <tr>
-                  <th className="px-5 py-3 text-left tracking-widest uppercase">Sensor</th>
-                  <th className="px-5 py-3 text-left tracking-widest uppercase">Value</th>
-                  <th className="px-5 py-3 text-left tracking-widest uppercase">Timestamp</th>
-                  <th className="px-5 py-3 text-right tracking-widest uppercase">Status</th>
+                  <th className="px-5 py-3 text-left uppercase tracking-widest">Sensor</th>
+                  <th className="px-5 py-3 text-left uppercase tracking-widest">Value</th>
+                  <th className="px-5 py-3 text-left uppercase tracking-widest">Timestamp</th>
+                  <th className="px-5 py-3 text-right uppercase tracking-widest">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-900">
                 {latestAlarms.map(alarm => (
-                  <tr key={alarm._id} className="hover:bg-zinc-900/30 transition-colors group">
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3 text-zinc-400">
-                        {alarm.sensor.includes('Boiler') ? (
-                          <Thermometer size={14} className="text-zinc-600" />
-                        ) : (
-                          <Droplets size={14} className="text-zinc-600" />
-                        )}
-                        <span className="font-medium uppercase">{alarm.sensor}</span>
+                  <tr key={alarm._id} className="hover:bg-zinc-900/30 transition-colors">
+                    <td className="px-5 py-3 text-zinc-400 uppercase">
+                      <div className="flex items-center gap-3">
+                        {alarm.sensor.includes('Boiler') ? <Thermometer size={14} /> : <Droplets size={14} />}
+                        {alarm.sensor}
                       </div>
                     </td>
                     <td className="px-5 py-3 font-mono">
                       <span className="text-zinc-200 font-bold">{alarm.value.toFixed(2)}</span>
-                      <span className="text-zinc-600 ml-1.5 text-[9px]">{alarm.sensor.includes('Boiler') ? '°C' : 'BAR'}</span>
+                      <span className="text-zinc-600 ml-1 text-[9px]">{alarm.sensor.includes('Boiler') ? '°C' : 'BAR'}</span>
                     </td>
-                    <td className="px-5 py-3 text-zinc-500 tabular-nums">
-                      {new Date(alarm.timestamp).toLocaleString('en-GB')}
-                    </td>
+                    <td className="px-5 py-3 text-zinc-500">{new Date(alarm.timestamp).toLocaleString('en-GB')}</td>
                     <td className="px-5 py-3 text-right">
-                      <span className="text-red-500 font-bold tracking-tighter bg-red-950/5 px-2 py-0.5 border border-red-900/10 uppercase text-[10px]">
+                      <span className="text-red-500 font-bold text-[10px] px-2 py-0.5 border border-red-900/10 uppercase bg-red-950/5">
                         {alarm.status}
                       </span>
                     </td>
@@ -242,8 +275,8 @@ function App() {
       </main>
 
       <footer className="max-w-5xl mx-auto px-8 py-10 border-t border-zinc-950 text-[9px] text-zinc-800 flex flex-col sm:flex-row justify-between gap-4">
-        <p className="tracking-widest uppercase">Industrial_Interface_v1.0</p>
-        <p className="font-mono italic uppercase">Last_20_Entries_Buffer</p>
+        <p className="tracking-widest uppercase">Industrial_Interface_v1.1</p>
+        <p className="font-mono italic uppercase">Filip Rybakov | findo-dev.me</p>
       </footer>
     </div>
   )
