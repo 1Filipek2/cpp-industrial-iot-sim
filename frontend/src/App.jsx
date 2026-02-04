@@ -25,15 +25,25 @@ function App() {
   const [alarms, setAlarms] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const fetchAlarms = useCallback(async () => {
+  const wakeUpServer = useCallback(async () => {
+    try {
+      await axios.get('/api/ping');
+      console.log("System_Status: Connection_Established");
+    } catch {
+      console.log("System_Status: Waking_UP_Backend..");
+    }
+  }, []);
+
+  async function fetchAlarms() {
     try {
       const res = await axios.get('/api/alarms')
       setAlarms(res.data)
       setLoading(false)
     } catch {
-      setLoading(false)
+      console.error("Fetch_Error: Retrying..");
+      setTimeout(fetchAlarms, 3000);
     }
-  }, [])
+  }
 
   const latestAlarms = useMemo(() => {
     return [...alarms].slice(0, 20)
@@ -59,25 +69,13 @@ function App() {
   }
 
   useEffect(() => {
-    let mounted = true
-    const load = async () => {
-      try {
-        const res = await axios.get('/api/alarms')
-        if (mounted) {
-          setAlarms(res.data)
-          setLoading(false)
-        }
-      } catch {
-        if (mounted) setLoading(false)
-      }
-    }
-    load()
+    wakeUpServer();
+    fetchAlarms();
+
     const interval = setInterval(fetchAlarms, 5000)
-    return () => {
-      mounted = false
-      clearInterval(interval)
-    }
-  }, [fetchAlarms])
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wakeUpServer])
 
   if (loading) {
     return (
