@@ -16,12 +16,15 @@ if (!mongoURI || !API_KEY) {
     process.exit(1);
 }
 
-mongoose.connect(mongoURI)
-    .then(() => console.log('Connected to MongoDB Atlas'))
-    .catch((err) => {
-        console.error('Database connection error:', err);
-        process.exit(1);
-    });
+mongoose.connect(mongoURI, {
+    maxPoolSize: 10,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+})
+.then(() => console.log('Connected to MongoDB Atlas'))
+.catch((err) => {
+    console.error('Database connection error:', err);
+});
 
 const alarmSchema = new mongoose.Schema({
     sensor: String,
@@ -29,7 +32,10 @@ const alarmSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now },
     status: String
 });
+
+alarmSchema.index({ timestamp: -1 });
 alarmSchema.index({ timestamp: 1 }, { expireAfterSeconds: 86400 });
+
 const Alarm = mongoose.model('Alarm', alarmSchema);
 
 const limiter = rateLimit({
@@ -43,10 +49,6 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
 app.use(express.json());
 
-// const frontendPath = path.join(__dirname, '..', 'frontend', 'dist');
-// app.use(express.static(frontendPath));
-
-
 const verifyApiKey = (req, res, next) => {
     const userKey = req.header('x-api-key');
     if (userKey && userKey === API_KEY) {
@@ -54,6 +56,10 @@ const verifyApiKey = (req, res, next) => {
     }
     res.status(403).json({ error: "Unauthorized" });
 };
+
+app.get('/api/ping', (req, res) => {
+    res.status(200).send('pong');
+});
 
 app.post('/api/alarms', limiter, verifyApiKey, async (req, res) => {
     try {
@@ -73,7 +79,10 @@ app.post('/api/alarms', limiter, verifyApiKey, async (req, res) => {
 
 app.get('/api/alarms', async (req, res) => {
     try {
-        const alarms = await Alarm.find().sort({ timestamp: -1 }).limit(100);
+        const alarms = await Alarm.find()
+            .sort({ timestamp: -1 })
+            .limit(100)
+            .lean();
         res.status(200).json(alarms);
     } catch (error) {
         res.status(500).json({ error: "failed" });
@@ -88,10 +97,6 @@ app.delete('/api/alarms', verifyApiKey, async (req, res) => {
         res.status(500).json({ error: "failed" });
     }
 });
-
-// app.use((req, res) => {
-//    res.sendFile(path.join(frontendPath, 'index.html'));
-// });
 
 app.get('/', (req, res) => {
     res.send('Industrial IoT API is running...');
