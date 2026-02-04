@@ -102,6 +102,50 @@ app.get('/', (req, res) => {
     res.send('Industrial IoT API is running...');
 });
 
+app.get('/api/stats', async (req, res) => {
+    try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const stats = await Alarm.aggregate([
+            { $match: { timestamp: { $gte: startOfDay } } },
+            {
+                $group: {
+                    _id: null,
+                    maxTemp: { 
+                        $max: { 
+                            $cond: [{ $eq: ["$sensor", "Main Boiler"] }, "$value", 0] 
+                        } 
+                    },
+                    alertCount: { 
+                        $sum: { 
+                            $cond: [
+                                { $in: ["$status", ["ALARM", "CRITICAL"]] }, 
+                                1, 
+                                0
+                            ] 
+                        } 
+                    },
+                    avgPressure: {
+                        $avg: { 
+                            $cond: [
+                                { $in: ["$sensor", ["Main Motor", "Hydraulic Pump"]] }, 
+                                "$value", 
+                                null
+                            ] 
+                        }
+                    }
+                }
+            }
+        ]);
+
+        const result = stats[0] || { maxTemp: 0, alertCount: 0, avgPressure: 0 };
+        res.status(200).json(result);
+    } catch (error) {
+        res.status(500).json({ error: "failed to fetch stats" });
+    }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Port ${PORT}`);
 });
